@@ -24,22 +24,113 @@ main
 #connect-form
 {
 	font-size:1.5em;
+	display:flex;
+	flex-direction:column;
+	justify-content:center;
+	align-items:center;
 }
 
+#connect-form div
+{
+	width:fit-content;
+	margin:auto;
+}
+
+#connect-form div:nth-child(2)
+{
+	margin-bottom:10px;
+}
 
 #connect-form input[type="submit"]
 {
 	width:100%;
-	margin-top:2px;
-	background-color:#52ec2b;
-	border:2px solid #b0fb9d;
+	background:#3a3a3a;
 	padding:5px;
+	color:white;
+	border:0px;
+	border-radius:6px;
+	width:315px;
+	margin-left:0.1em;
 	font-size:1.2em;
+	margin-top:10px;
+	transition:all 0.3s ease;
+}
+
+#party_type
+{
+	margin-top:10px;
+	margin-bottom:10px;
+}
+
+#party_type span
+{
+	padding:5px;
+	border-radius:5px;
+	background:#3a3a3a;
+	margin:5px;
+	color:white;
+	transition:all 0.3s ease;
+}
+
+#party_type span:hover
+{
+	background:#827f7f;
+	cursor:pointer;
+	color:black;
+}
+
+#party_type span>*:hover
+{
+	cursor:pointer;
+}
+
+#party_zone
+{
+	display:none;
+	flex-direction:column;
+	margin-top:10px;
+	justify-content:center;
+	width:fit-content;
+	margin:auto;
+	margin-top:15px;
+}
+
+#party_zone td
+{
+	border:1px solid grey;
+}
+
+#group_id
+{
+	display:none;
+}
+
+#host_id
+{
+	display:none;
+	border:0px;
+	padding:0px;
+}
+
+#id_host
+{
+	max-height:31px;
+	width:35px;
+	font-size:0.9em;
+	background:grey;
+	border:0px;
 }
 
 #connect-form input[type="submit"]:focus
 {
 	outline:0px;
+}
+
+#connect-form input[type="submit"]:hover
+{
+	cursor:pointer;
+	background:#827f7f;
+	color:black;
 }
 
 #lobby
@@ -271,3 +362,4 @@ main
 	text-align:center;
 	color:red;
 }
+
