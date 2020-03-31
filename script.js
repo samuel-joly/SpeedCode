@@ -1,10 +1,8 @@
 $(document).ready(function(){
 	const player_nb = 1;
-	// Is user connected ? -- function.php <<is_logged>>
-		// If yes go to lobby
-		// If no show inscription menu
+	
 	$.ajax({
-		url:"function.php",
+		url:"user.php",
 		type:"get",
 		data:{
 			"function" : "is_logged"
@@ -14,7 +12,7 @@ $(document).ready(function(){
 			data = JSON.parse(data);
 			switch(data["response"])
 			{
-				case "true":
+				case true:
 					go_to_lobby(data["login"]);				
 				break;
 				
@@ -23,11 +21,41 @@ $(document).ready(function(){
 				break;
 				
 				case "next_exo":
-					next_level();
+					set_level(data["exo"]);
 				break;
 				
 				case "leaderboard":
 					display_leaderboard();
+				break;
+				
+				case "wait_team":
+					console.log("ATTEND");
+					$.ajax({
+						url:"exercice.php",
+						type:"post",
+						data:{"function":"set_level","id":data["exo"]},
+						
+					});
+					
+					var wait_team = setInterval(function(){
+						$.ajax({
+							url:"lobby.php",
+							type:"get",
+							data:{"function":"is_group_ready"},
+							success:function(data)
+							{
+								console.log(data);
+								data = JSON.parse(data);
+								if(data["team_ready"] == true)
+								{
+									set_level(data["exo"]);
+									clearInterval(wait_team);
+								}
+							}
+							
+						})
+						
+					}, 1000);
 				break;
 				
 				default:
@@ -39,23 +67,104 @@ $(document).ready(function(){
 	
 	$("#connect").click(function(e){
 		e.preventDefault();
+		
+		if($("#login").val() == "" || (document.getElementsByName("party_type")[1].checked == false && document.getElementsByName("party_type")[0].checked == false))
+		{
+			return 0;
+		}
+		
+		if(document.getElementsByName("party_type")[1].checked)
+		{
+			if(document.getElementsByName("host_zone")[1].checked)
+			{
+				if($("id_host").val() == "")
+				{
+					$("main").append("<p>Empty ID</p>");
+					return 0;
+				}
+				else
+				{
+					group_id = $("#id_host").val();
+				}
+			}
+		}
+		else if(document.getElementsByName("party_type")[0].checked)
+		{
+			group_id = false;
+		}
+		else
+		{
+			return 0;
+		}
+		
+		
 		$.ajax(
 		{
-			type:"POST",
-			url:"function.php",
-			data:{ "function" : "sign_up", login: $("#login").val(), email:$("#mail").val() },
+			type:"post",
+			url:"user.php",
+			data:{ "function" : "sign_up", login: $("#login").val(), email:$("#mail").val(), group:group_id },
 			success:function(data){
+				data = JSON.parse(data);
 				$("#connect-form").css("display","none");
-				
-				go_to_lobby(data);
+				if(data["response"] == false)
+				{
+					go_to_lobby(data["login"]);					
+				}
+				else if(data["response"] == "group_is_playing")
+				{
+					$("main").append("<p style='color:red'>Your group is already in game.</p>");
+				}
+				else
+				{
+					next_level(1);
+				}
 			}
 		});
 	});
 	
-	var lobby_wait; // setInterval inside go_to_lobby()
+	$(document.getElementsByName("party_type")[1]).click(function(){
+		
+		if($("#party_zone").css("display") == "none")
+		{
+			$("#party_zone").css("display","flex");
+		}
+	});
+	
+	$(document.getElementsByName("party_type")[0]).click(function(){
+		$("#party_zone").css("display","none");
+	});
+	
+	group_id = Math.floor(Math.random()*100)+100;
+	$(document.getElementsByName("host_zone")[0]).click(function(){
+		is_group_id_available(group_id);
+		
+		if($("#group_id").css("display") == "none")
+		{
+			$("#group_id").css("display","block");		
+		}
+		
+		if($("#host_id").css("display") != "none")
+		{
+			$("#host_id").css("display","none");
+		}
+		
+	});
+	
+	$(document.getElementsByName("host_zone")[1]).click(function(){
+		if($("#group_id").css("display") != "none")
+		{
+			$("#group_id").css("display","none");
+		}
+		
+		if($("#host_id").css("display") == "none")
+		{
+			$("#host_id").css("display","block");
+		}
+	});
+	
+	var lobby_wait;
 	function go_to_lobby(login)
 	{
-		
 		lobby = $("<div id='lobby'/></div>");
 		
 		userTag = $("<div class='usrBox'> <p class='usrTag' id='curUsr'>"+login+"</p><img src='assets/ready.png'class='readyLogo'/></div>");
@@ -72,7 +181,7 @@ $(document).ready(function(){
 		
 		$.ajax({
 			type:"post",
-			url:"function.php",
+			url:"lobby.php",
 			data : {"function" : "is_user_ready", "login":login},
 			success:function(data)
 			{
@@ -112,7 +221,7 @@ $(document).ready(function(){
 			
 			$.ajax({
 				type:"post",
-				url:"function.php",
+				url:"lobby.php",
 				data:{ "function":"lobby_user_ready", "is_ready":ready },
 				success:function(data)
 				{
@@ -135,7 +244,7 @@ $(document).ready(function(){
 	{
 		$.ajax({
 			type:"post",
-			url:"function.php",
+			url:"lobby.php",
 			data:{"function":"connect_to_lobby" , "login":login},
 			success:function(data){
 				$("main").prepend(data);
@@ -156,7 +265,7 @@ $(document).ready(function(){
 	
 		$.ajax({
 			type:"post",
-			url:"function.php",
+			url:"lobby.php",
 			data:{
 				"function": "fill_lobby",
 				login:childNames
@@ -209,7 +318,7 @@ $(document).ready(function(){
 		{
 			$.ajax({
 				type:"get",
-				url:"function.php",
+				url:"lobby.php",
 				data:{ "function" : "is_lobby_ready"},
 				success:function(data)
 				{
@@ -228,7 +337,7 @@ $(document).ready(function(){
 								$("#readyBtn").remove();
 								$("#lobby-ready").remove();
 								
-								next_level();
+								set_level(1);
 							}
 							$("#lobby-ready").text("Début dans "+count+"s");
 							count--;
@@ -239,17 +348,17 @@ $(document).ready(function(){
 		}
 	}
 	
-	function next_level()
+	function set_level(level_id)
 	{
 		$.ajax({
 			type:"post",
-			url:"function.php",
-			data:{ "function" : "next_level"},
+			url:"exercice.php",
+			data:{ "function" : "set_level", "id":level_id},
 			success:function(data){
 				data = JSON.parse(data);
-				if(data["exo_end"] != "undefined")
+				if(data["exo_end"] == false)
 				{
-					display_exercice(data);					
+					display_exercice(data["exo"]);					
 				}
 				else
 				{
@@ -288,7 +397,7 @@ $(document).ready(function(){
 			
 			$.ajax({
 				type:"post",
-				url:"function.php",
+				url:"exercice.php",
 				data:{"function":"is_exo_started"},
 				success:function(data){
 					data = JSON.parse(data);
@@ -307,6 +416,24 @@ $(document).ready(function(){
 		}, 100)
 	}
 	
+	function is_group_id_available(group_id)
+	{
+		$.ajax({
+			type:"post",
+			url:"user.php",
+			data:{"function":"is_group_id_available", "id":group_id},
+			success:function(data){
+				if(data != "false")
+				{
+					$("#group_id").text(data);
+				}
+				else
+				{
+					is_group_id_available(Math.floor(Math.random()*100)+100);					
+				}
+			}		
+		});		
+	}
 	
 	function display_leaderboard()
 	{

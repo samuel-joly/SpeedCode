@@ -11,7 +11,16 @@
 
 	<body>
 		<header>
-			<?php session_start(); ?>
+			<?php session_start(); 
+			$stmt = new PDO("mysql:host=localhost;dbname=speedCode", "root","");
+			// var_dump($_SESSION);
+			// unset($_SESSION["id"]);
+			// unset($_SESSION["exo_started"]);
+			// unset($_SESSION["groupe"]);
+			// unset($_SESSION["login"]);
+			// unset($_SESSION["exo-end"]);
+			// unset($_SESSION["end_exo"]);
+			?>
 		</header>
 
 		<main>
@@ -22,12 +31,47 @@
 						<input type="text" id="login"/>
 					</div>
 					<div>
-						<label for="mail">Email: </label>
+						<label for="mail">Email :</label>
 						<input type="mail" id="mail"/>
 					</div>
 					
+					<div id='party_type'>
+						<span>
+							<input type='radio' name="party_type" value='solo' id='solo' /><label for='solo'>Singleplayer</label>
+						</span>
+						
+						<span>
+							<input type='radio' name="party_type" value='multi' id='multi' /><label for='multi'>Multiplayer</label>
+						</span>
+					</div>
+					
+					<table id='party_zone'>
+					
+						<tr id='host-zone'>
+							<td>
+								<input type='radio' name='host_zone' id='host'/>
+								<label for='host'>Host party N°</label>
+							</td>
+							
+							<td id='group_id'></td>
+						</tr>
+					
+						<tr id='join-zone'>
+						
+							<td>
+								<input type='radio' name='host_zone' value='join' id='join'/>
+								<label for='join'>Join party N°</label>
+							</td>
+							
+							<td id='host_id'>
+								<input type='text' id='id_host' maxlength='3' required/>
+							</td>
+						</tr>
+
+					</table>
+					
 					<input type="submit" value="Commencer" id="connect"/>				
-				</form>	
+				</form>
 			<?php } ?>
 		</main>
 
@@ -68,7 +112,7 @@
 				}
 				else
 				{
-					echo "Wrong type, only .zip and .rar accepted";
+					echo "<p style='color:red; font-weight:bold;'>Wrong type, only .zip and .rar accepted</p>";
 				}				
 			}
 		}
